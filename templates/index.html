@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anxiety Prediction System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .form-container {
+            padding: 40px;
+        }
+
+        .form-section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #4facfe;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            text-transform: capitalize;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .form-group input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        .form-group input[type="number"]::-webkit-outer-spin-button,
+        .form-group input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .predict-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            display: block;
+            margin: 40px auto 0;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .predict-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .result-container.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result-container.warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+
+        .result-container.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .result-details {
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-text {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4facfe;
+        }
+
+        .info-text p {
+            color: #666;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Anxiety Prediction System</h1>
+            <p>Machine Learning-based Anxiety Detection</p>
+        </div>
+
+        <div class="form-container">
+            <div class="info-text">
+                <p style="margin-top: 10px; color: #e74c3c; font-size: 0.9em;">
+                    <strong>Important Disclaimer:</strong> This tool is built for learning and portfolio purposes only and should <strong>not</strong> be used for clinical or medical decisions. If you or someone you know is experiencing anxiety, please consult a qualified mental health professional.
+                </p>
+            </div>
+            <div class="info-text">
+                <p style="margin-top: 8px; color: #856404; font-size: 0.85em;">
+                    <strong>Model Limitations:</strong> This model was trained on a highly imbalanced dataset where only 7.8% of samples (122 out of 1,558) are labeled as anxiety. SMOTE oversampling was applied to address class imbalance during training, which improved test set performance (Recall=0.92, F1=0.96) but introduced overfitting on training data. As a result, the model may struggle to generalize to new inputs and could predict <em>No Anxiety</em> even for profiles that clinically suggest otherwise. These limitations are acknowledged as part of the learning process.
+                </p>
+            </div>
+            <div class="info-text">
+                <p>Please fill in the following information to get an anxiety prediction. The system uses various health and lifestyle factors to assess anxiety risk.</p>
+            </div>
+
+            <form id="predictionForm">
+                <div class="form-section">
+                    <h2 class="section-title">Categorical Features</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="who_bmi">BMI Category (WHO)</label>
+                            <select id="who_bmi" name="who_bmi" required>
+                                <option value="">Select BMI Category</option>
+                                <option value="Underweight">Underweight</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Overweight">Overweight</option>
+                                <option value="Class I Obesity">Class I Obesity</option>
+                                <option value="Class II Obesity">Class II Obesity</option>
+                                <option value="Class III Obesity">Class III Obesity</option>
+                                <option value="Not Availble">Not Available</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="depression_severity">Depression Severity</label>
+                            <select id="depression_severity" name="depression_severity" required>
+                                <option value="">Select Severity</option>
+                                <option value="None">None</option>
+                                <option value="None-minimal">None-minimal</option>
+                                <option value="Mild">Mild</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Moderately severe">Moderately severe</option>
+                                <option value="Severe">Severe</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="anxiousness">Anxiousness</label>
+                            <select id="anxiousness" name="anxiousness" required>
+                                <option value="">Select Status</option>
+                                <option value="True">Yes</option>
+                                <option value="False">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="depressiveness">Depressiveness</label>
+                            <select id="depressiveness" name="depressiveness" required>
+                                <option value="">Select Status</option>
+                                <option value="True">Yes</option>
+                                <option value="False">No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sleepiness">Sleepiness</label>
+                            <select id="sleepiness" name="sleepiness" required>
+                                <option value="">Select Status</option>
+                                <option value="True">Yes</option>
+                                <option value="False">No</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h2 class="section-title">Numeric Features</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="age">Age</label>
+                            <input type="number" id="age" name="age" min="1" max="120" required placeholder="Enter age">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bmi">BMI</label>
+                            <input type="text" id="bmi" name="bmi" min="10" max="50" required placeholder="Enter BMI">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="phq_score">PHQ-9 Score</label>
+                            <input type="number" id="phq_score" name="phq_score" min="0" max="27" required placeholder="0-27">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="epworth_score">Epworth Score</label>
+                            <input type="number" id="epworth_score" name="epworth_score" min="0" max="24" required placeholder="0-24">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="predict-btn" id="predictBtn">Predict Anxiety</button>
+            </form>
+
+            <div id="resultContainer" class="result-container">
+                <div class="result-title" id="resultTitle"></div>
+                <div class="result-details" id="resultDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('predictBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultDetails = document.getElementById('resultDetails');
+            
+            // Show loading state
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span>Predicting...';
+            resultContainer.style.display = 'none';
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const data = {};
+            
+            CATEGORICAL_FEATURES = ["gender", "who_bmi", "depression_severity", "anxiousness", "depressiveness", "sleepiness"];
+            NUMERIC_FEATURES = ["age", "bmi", "phq_score", "epworth_score"];
+            
+            [...CATEGORICAL_FEATURES, ...NUMERIC_FEATURES].forEach(feature => {
+                data[feature] = formData.get(feature);
+            });
+            
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    resultContainer.className = 'result-container ' + (result.prediction === 1 ? 'warning' : 'success');
+                    resultTitle.textContent = result.prediction_label;
+                    resultDetails.innerHTML = `
+                        <strong>Confidence:</strong> ${result.confidence}<br>
+                        <strong>Probability of Anxiety:</strong> ${(result.probability * 100).toFixed(2)}%
+                        <strong>Risk Level:</strong> ${result.risk_level}
+                    `;
+                } else {
+                    resultContainer.className = 'result-container error';
+                    resultTitle.textContent = 'Error';
+                    resultDetails.textContent = result.error || 'An error occurred during prediction.';
+                }
+                
+                resultContainer.style.display = 'block';
+                
+            } catch (error) {
+                resultContainer.className = 'result-container error';
+                resultTitle.textContent = 'Error';
+                resultDetails.textContent = 'Failed to connect to the prediction service.';
+                resultContainer.style.display = 'block';
+            }
+            
+            // Reset button state
+            btn.disabled = false;
+            btn.innerHTML = 'Predict Anxiety';
+        });
+    </script>
+</body>
+</html>

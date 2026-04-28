@@ -1,0 +1,10 @@
+analysis
+.env
+*.pyc
+__pycache__
+*.ipynb
+models
+.venv*
+images
+!templates/interfaces
+.idea
