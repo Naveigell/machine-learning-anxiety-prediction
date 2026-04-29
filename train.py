@@ -166,7 +166,7 @@ def encode_and_merge(x_train, x_test, drop=None, handle_unknown="ignore"):
     x_train_processed = np.concatenate([x_train_numerical, x_train_categorical], axis=1)
     x_test_processed = np.concatenate([x_test_numerical, x_test_categorical], axis=1)
 
-    return x_train_processed, x_test_processed
+    return x_train_processed, x_test_processed, one_hot_encoder, scaler
 
 
 def stratified_k_fold(model, drop, handle_unknown="ignore"):
@@ -178,7 +178,7 @@ def stratified_k_fold(model, drop, handle_unknown="ignore"):
         x_train, x_test = x.iloc[train_index], x.iloc[test_index]
         y_train, y_test = y.iloc[train_index], y.iloc[test_index]
 
-        x_train_processed, x_test_processed = encode_and_merge(x_train, x_test, drop, handle_unknown)
+        x_train_processed, x_test_processed, _, _ = encode_and_merge(x_train, x_test, drop, handle_unknown)
 
         model.fit(x_train_processed, y_train)
         y_pred = model.predict(x_test_processed)
@@ -228,7 +228,7 @@ chosen_models = [
 
 def run_chosen_model():
     for model, drop in chosen_models:
-        x_train_processed, x_test_processed = encode_and_merge(x_train, x_test, drop, 'ignore')
+        x_train_processed, x_test_processed, one_hot_encoder, scaler = encode_and_merge(x_train, x_test, drop, 'ignore')
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
